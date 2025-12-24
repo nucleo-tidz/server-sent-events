@@ -3,7 +3,7 @@
 namespace api.Requests
 {
     public class CreateOrderRequest
-    {
+    {    
         public string Product { get; set; }
     }
 

@@ -13,6 +13,7 @@ namespace api.Controllers
     {
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create(CreateOrderRequest request, CancellationToken ct)
         {
             await orderService.CreateOrderAsync(request.ToModel());
@@ -20,6 +21,8 @@ namespace api.Controllers
         }
 
         [HttpGet("stream")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IAsyncEnumerable<OrderCreatedEvent>))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IResult Stream(CancellationToken ct)
         {
             async IAsyncEnumerable<OrderCreatedEvent> StreamOrders([EnumeratorCancellation] CancellationToken cancellationToken)
