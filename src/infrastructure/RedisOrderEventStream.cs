@@ -27,16 +27,17 @@ namespace infrastructure
                 new("product", order.Product),
                 new("createdAt", order.CreatedAt.ToString("O"))
                 },
-                maxLength: 10_000,
+                maxLength: 4,
                 useApproximateMaxLength: true
                 
             );
         }
 
         public async IAsyncEnumerable<OrderCreatedEvent> SubscribeAsync(
-           [EnumeratorCancellation] CancellationToken ct = default)
+            [EnumeratorCancellation] CancellationToken ct = default)
         {
-            RedisValue position = "0-0";
+
+            RedisValue position;
             var latest = await _db.StreamRangeAsync(
                 StreamKey,
                 minId: "-",
@@ -45,9 +46,7 @@ namespace infrastructure
                 Order.Descending
             );
 
-            if (latest.Length > 0)
-                position = latest[0].Id;
-
+            position = latest.Length > 0 ? latest[0].Id : "0-0";
             while (!ct.IsCancellationRequested)
             {
                 var entries = await _db.StreamReadAsync(
@@ -69,6 +68,7 @@ namespace infrastructure
                 await Task.Delay(300, ct);
             }
         }
+
 
 
     }
