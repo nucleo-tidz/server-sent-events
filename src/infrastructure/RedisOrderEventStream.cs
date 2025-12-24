@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace infrastructure
 {
-  
+
 
     public sealed class RedisOrderEventStream : IOrderEventStream
     {
@@ -29,14 +29,31 @@ namespace infrastructure
                 },
                 maxLength: 4,
                 useApproximateMaxLength: true
-                
+
             );
         }
 
         public async IAsyncEnumerable<OrderCreatedEvent> SubscribeAsync(
-            [EnumeratorCancellation] CancellationToken ct = default)
+            bool replay = false, [EnumeratorCancellation] CancellationToken ct = default)
         {
-
+            if (replay)
+            {
+                await foreach (var order in SubscribeWithReplayAsync(ct))
+                {
+                    yield return order;
+                }
+            }
+            else
+            {
+                await foreach (var order in SubscribeWithoutReplayAsync(ct))
+                {
+                    yield return order;
+                }
+            }
+        }
+        private async IAsyncEnumerable<OrderCreatedEvent> SubscribeWithoutReplayAsync(
+         [EnumeratorCancellation] CancellationToken ct = default)
+        {
             RedisValue position;
             var latest = await _db.StreamRangeAsync(
                 StreamKey,
@@ -68,9 +85,36 @@ namespace infrastructure
                 await Task.Delay(300, ct);
             }
         }
+        private async IAsyncEnumerable<OrderCreatedEvent> SubscribeWithReplayAsync(
+          [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            var connectedAt = DateTime.UtcNow;
+            RedisValue position = "0-0";
+            while (!ct.IsCancellationRequested)
+            {
+                var entries = await _db.StreamReadAsync(
+                    StreamKey,
+                    position,
+                    count: 10
+                );
+                foreach (var entry in entries)
+                {
+                    position = entry.Id;
 
+                    var order = new OrderCreatedEvent(
+                        OrderId: (int)entry["orderId"],
+                        Product: entry["product"]!,
+                        CreatedAt: DateTime.Parse(entry["createdAt"]!)
+                    );
 
+                    if (order.CreatedAt < connectedAt)
+                        continue;
+                    yield return order;
+                }
 
+                await Task.Delay(300, ct);
+            }
+        }
     }
 
 }

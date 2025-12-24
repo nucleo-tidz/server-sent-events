@@ -26,7 +26,7 @@ namespace api.Controllers
         {
             async IAsyncEnumerable<OrderCreatedEvent> StreamOrders([EnumeratorCancellation] CancellationToken cancellationToken)
             {
-                await foreach (var order in eventStream.SubscribeAsync(cancellationToken))
+                await foreach (var order in eventStream.SubscribeAsync(false,cancellationToken))
                 {
                     yield return order;
                 }

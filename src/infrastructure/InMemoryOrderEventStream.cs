@@ -13,7 +13,7 @@ namespace infrastructure
         public ValueTask PublishAsync(OrderCreatedEvent order, CancellationToken ct = default)
             => _channel.Writer.WriteAsync(order, ct);
 
-        public async IAsyncEnumerable<OrderCreatedEvent> SubscribeAsync(
+        public async IAsyncEnumerable<OrderCreatedEvent> SubscribeAsync(bool replay = false,
             [EnumeratorCancellation] CancellationToken ct = default)
         {
             await foreach (var order in _channel.Reader.ReadAllAsync(ct))
