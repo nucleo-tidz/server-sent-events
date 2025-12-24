@@ -10,12 +10,10 @@ namespace infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             //services.AddSingleton<IOrderEventStream, InMemoryOrderEventStream>();
-
             services.AddSingleton<IConnectionMultiplexer>(
-    _ => ConnectionMultiplexer.Connect("localhost:6379"));
+                _ => ConnectionMultiplexer.Connect("localhost:6379"));
             services.AddSingleton<IOrderEventStream, RedisOrderEventStream>();
             return services;
         }
-
     }
 }

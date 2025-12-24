@@ -4,9 +4,10 @@ using service;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer()
-.AddSwaggerGen()
-.AddInfrastructure(builder.Configuration)
-.AddServices(builder.Configuration);
+    .AddSwaggerGen()
+    .AddInfrastructure(builder.Configuration)
+    .AddServices(builder.Configuration);
+
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {

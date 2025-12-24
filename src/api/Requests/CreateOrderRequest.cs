@@ -7,6 +7,7 @@ namespace api.Requests
     {
         public string Product { get; set; }
     }
+
     public static class CreateOrderRequestExtensions
     {
         public static OrderModel ToModel(this CreateOrderRequest request)

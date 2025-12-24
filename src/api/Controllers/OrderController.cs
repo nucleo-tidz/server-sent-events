@@ -14,9 +14,8 @@ namespace api.Controllers
     {
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Create(CreateOrderRequest request,
-        CancellationToken ct)
-        {           
+        public async Task<IActionResult> Create(CreateOrderRequest request, CancellationToken ct)
+        {
             await orderService.CreateOrderAsync(request.ToModel());
             return Created();
         }
@@ -26,12 +25,11 @@ namespace api.Controllers
         {
             async IAsyncEnumerable<OrderCreatedEvent> StreamOrders([EnumeratorCancellation] CancellationToken cancellationToken)
             {
-                await foreach (var order in eventStream.SubscribeAsync(false,cancellationToken))
+                await foreach (var order in eventStream.SubscribeAsync(false, cancellationToken))
                 {
                     yield return order;
                 }
             }
-
             return TypedResults.ServerSentEvents(StreamOrders(ct), eventType: "order-created");
         }
     }

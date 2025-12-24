@@ -9,8 +9,7 @@ namespace service
     {
         public async Task CreateOrderAsync(OrderModel order)
         {
-            var orderCreated = new OrderCreatedEvent
-            (
+            var orderCreated = new OrderCreatedEvent(
                 OrderId: Random.Shared.Next(1, 100_000),
                 Product: order.Product,
                 CreatedAt: DateTime.UtcNow

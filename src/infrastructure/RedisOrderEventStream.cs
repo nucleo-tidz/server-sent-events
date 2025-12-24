@@ -5,8 +5,6 @@ using System.Runtime.CompilerServices;
 
 namespace infrastructure
 {
-
-
     public sealed class RedisOrderEventStream : IOrderEventStream
     {
         private const string StreamKey = "orders:stream";
@@ -16,23 +14,20 @@ namespace infrastructure
         {
             _db = redis.GetDatabase();
         }
-
         public async ValueTask PublishAsync(OrderCreatedEvent order, CancellationToken ct = default)
         {
             await _db.StreamAddAsync(
                 StreamKey,
                 new NameValueEntry[]
                 {
-                new("orderId", order.OrderId),
-                new("product", order.Product),
-                new("createdAt", order.CreatedAt.ToString("O"))
+                    new("orderId", order.OrderId),
+                    new("product", order.Product),
+                    new("createdAt", order.CreatedAt.ToString("O"))
                 },
                 maxLength: 4,
                 useApproximateMaxLength: true
-
             );
         }
-
         public async IAsyncEnumerable<OrderCreatedEvent> SubscribeAsync(
             bool replay = false, [EnumeratorCancellation] CancellationToken ct = default)
         {
@@ -52,7 +47,7 @@ namespace infrastructure
             }
         }
         private async IAsyncEnumerable<OrderCreatedEvent> SubscribeWithoutReplayAsync(
-         [EnumeratorCancellation] CancellationToken ct = default)
+            [EnumeratorCancellation] CancellationToken ct = default)
         {
             RedisValue position;
             var latest = await _db.StreamRangeAsync(
@@ -75,7 +70,6 @@ namespace infrastructure
                 foreach (var entry in entries)
                 {
                     position = entry.Id;
-
                     yield return new OrderCreatedEvent(
                         OrderId: (int)entry["orderId"],
                         Product: entry["product"]!,
@@ -86,7 +80,7 @@ namespace infrastructure
             }
         }
         private async IAsyncEnumerable<OrderCreatedEvent> SubscribeWithReplayAsync(
-          [EnumeratorCancellation] CancellationToken ct = default)
+            [EnumeratorCancellation] CancellationToken ct = default)
         {
             var connectedAt = DateTime.UtcNow;
             RedisValue position = "0-0";
@@ -100,21 +94,17 @@ namespace infrastructure
                 foreach (var entry in entries)
                 {
                     position = entry.Id;
-
                     var order = new OrderCreatedEvent(
                         OrderId: (int)entry["orderId"],
                         Product: entry["product"]!,
                         CreatedAt: DateTime.Parse(entry["createdAt"]!)
                     );
-
                     if (order.CreatedAt < connectedAt)
                         continue;
                     yield return order;
                 }
-
                 await Task.Delay(300, ct);
             }
         }
     }
-
 }
