@@ -1,5 +1,4 @@
 ﻿using api.Requests;
-using infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using model.Events;
 using service.Interfaces.Infra;
